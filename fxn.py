@@ -30,10 +30,27 @@ barCode = str(barInfo[0].data)[2:-1]
 # print ("Entire Response:")
 # pprint.pprint(data)
 
+urlLookUp = "https://api.nal.usda.gov/ndb/search/?format=json&q=QuakerInstantOatmeal,Apples&Cinnamon,BreakfastCereal,10PacketsPerBox(Packof4)&max=25&api_key=TehI0dSnyvPsNIBs8qWtWro29oghehy3LTkXDSIc"
 
-url = "https://developer.nrel.gov/api/alt-fuel-stations/v1/nearest.json?api_key=TehI0dSnyvPsNIBs8qWtWro29oghehy3LTkXDSIc&location=Denver+CO"
-
-with urllib.request.urlopen(url) as url:
+with urllib.request.urlopen(urlLookUp) as url:
     data = json.loads(url.read().decode())
 
-print(data)
+product = ""
+
+result = data["list"]["item"]
+
+for i in result:
+    if i["ds"] == "SR" or i["ds"] == "BL":
+        product = i["ndbno"]
+        break
+
+urlNutri = "https://api.nal.usda.gov/ndb/V2/reports?ndbno=" + product + "&type=b&format=json&api_key=TehI0dSnyvPsNIBs8qWtWro29oghehy3LTkXDSIc"
+
+with urllib.request.urlopen(urlNutri) as url:
+    data = json.loads(url.read().decode())
+
+
+# print(json.dumps(data, indent=4, sort_keys=True))
+
+filter = data["foods"][0]["food"]["nutrients"]
+print(json.dumps(filter, indent=4, sort_keys=True))
