@@ -49,8 +49,16 @@ urlNutri = "https://api.nal.usda.gov/ndb/V2/reports?ndbno=" + product + "&type=b
 with urllib.request.urlopen(urlNutri) as url:
     data = json.loads(url.read().decode())
 
-
 # print(json.dumps(data, indent=4, sort_keys=True))
 
 filter = data["foods"][0]["food"]["nutrients"]
-print(json.dumps(filter, indent=4, sort_keys=True))
+# print(json.dumps(filter, indent=4, sort_keys=True))
+
+for i in filter:
+    name = i["name"]
+    unit = i["unit"]
+    value = str(i["measures"][0]["value"])
+    eqv = str(i["measures"][0]["eqv"])
+    
+    result = name + ": " + value + unit + " / serving"
+    print(result)
