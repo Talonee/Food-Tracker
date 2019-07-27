@@ -7,82 +7,8 @@ import urllib.request
 import json
 import pprint
 
-barInfo = decode(Image.open('photos/quakerbarcode.png'))
-barCode = str(barInfo[0].data)[2:-1]
-
-# keyNum = 0 # line placement of api key
-# api_key = open(".gitignore/api_keys.txt", "r").readlines()
-# print(api_key[keyNum])
-# keyNum += 1 # +1 for every iteration
-# print(api_key[keyNum])
-
-# urlBar = "https://api.barcodelookup.com/v2/products?barcode=" + barCode + "&formatted=y&key=" + api_key
-
-# with urllib.request.urlopen(urlBar) as url:
-#     data = json.loads(url.read().decode())
-
-# barcode = data["products"][0]["barcode_number"]
-# print ("Barcode Number: ", barcode, "\n")
-
-# name = data["products"][0]["product_name"]
-# print ("Product Name: ", name, "\n")
-
-# print ("Entire Response:")
-# pprint.pprint(data)
-
-urlFood = "https://api.nal.usda.gov/ndb/search/?format=json&q=QuakerInstantOatmeal,Apples&Cinnamon,BreakfastCereal,10PacketsPerBox(Packof4)&max=25&api_key=TehI0dSnyvPsNIBs8qWtWro29oghehy3LTkXDSIc"
-
-with urllib.request.urlopen(urlFood) as url:
-    data = json.loads(url.read().decode())
-
-product = ""
-result = data["list"]["item"]
-
-for i in result:
-    if i["ds"] == "SR" or i["ds"] == "BL":
-        product = i["ndbno"]
-        break
-
-urlNutri = "https://api.nal.usda.gov/ndb/V2/reports?ndbno=" + product + "&type=b&format=json&api_key=TehI0dSnyvPsNIBs8qWtWro29oghehy3LTkXDSIc"
-
-with urllib.request.urlopen(urlNutri) as url:
-    data = json.loads(url.read().decode())
-
-# print(json.dumps(data, indent=4, sort_keys=True))
-
-filter = data["foods"][0]["food"]["nutrients"]
-# print(json.dumps(filter, indent=4, sort_keys=True))
-
-
-
-eqv = str(filter[0]["measures"][0]["eqv"])
-unit = filter[0]["unit"]
-
-print("Showing results for one serving of " + eqv + unit)
-print("--------------------------")
-for i in filter:
-    name = i["name"]
-    value = str(i["measures"][0]["value"])
-    # eqv = str(i["measures"][0]["eqv"])
-    # unit = i["unit"]
-    
-    result = name + ": " + value + unit
-    print(result)
-
-print()
-print()
-print()
-
-print("Showing results for one serving of " + str(100) + unit)
-print("--------------------------")
-for i in filter:
-    name = i["name"]
-    value = str(i["value"])
-    # eqv = str(i["measures"][0]["eqv"])
-    # unit = i["unit"]
-    
-    result = name + ": " + value + unit
-    print(result)
+# API Keys file
+from api_keys import key
 
 limitNutrient = {
     "Biotin": ("mcg", 300), "Folate/Folic Acid": ("mcg", 400),
@@ -126,5 +52,87 @@ intakeNutrient = {
     "Cholesterol": [0, 0, 0], "Caffeine": [0, 0, 0]
 }
 
+
+def checkItem(food):
+    barInfo = decode(Image.open(food))
+    barCode = str(barInfo[0].data)[2:-1]
+    
+    uri = "https://api.barcodelookup.com/v2/products?"
+    query = "barcode=" + barCode + "&formatted=y&key=" + key["barcode"]
+    urlBar = uri + query
+
+    # with urllib.request.urlopen(urlBar) as url:
+    #     data = json.loads(url.read().decode())
+
+    # barcode = data["products"][0]["barcode_number"]
+    # print ("Barcode Number: ", barcode, "\n")
+
+    # name = data["products"][0]["product_name"]
+    # print ("Product Name: ", name, "\n")
+
+    # print ("Entire Response:")
+    # pprint.pprint(data)
+    name = "Quaker Instant Oatmeal, Apples & Cinnamon, Breakfast Cereal, 10 Packets Per Box (Pack of 4)"
+    name = name.replace(" ", "")
+
+    return name
+
+
+def measure(food, quantity):
+    uri = "https://api.nal.usda.gov/ndb/search/?"
+    query = "format=json&q=" + checkItem(food) + "&max=25&api_key=" + key["product"]
+    urlFood = uri + query
+
+    with urllib.request.urlopen(urlFood) as url:
+        data = json.loads(url.read().decode())
+
+    product = ""
+    result = data["list"]["item"]
+
+    for i in result:
+        if i["ds"] == "SR" or i["ds"] == "BL":
+            product = i["ndbno"]
+            break
+
+    urlNutri = "https://api.nal.usda.gov/ndb/V2/reports?ndbno=" + product + "&type=b&format=json&api_key=TehI0dSnyvPsNIBs8qWtWro29oghehy3LTkXDSIc"
+
+    with urllib.request.urlopen(urlNutri) as url:
+        data = json.loads(url.read().decode())
+
+    # print(json.dumps(data, indent=4, sort_keys=True))
+
+    filter = data["foods"][0]["food"]["nutrients"]
+    # print(json.dumps(filter, indent=4, sort_keys=True))
+
+    eqv = str(filter[0]["measures"][0]["eqv"])
+    unit = filter[0]["unit"]
+
+    print("Showing results for one serving of " + eqv + unit)
+    print("--------------------------")
+    for i in filter:
+        name = i["name"]
+        value = str(i["measures"][0]["value"])
+        # eqv = str(i["measures"][0]["eqv"])
+        # unit = i["unit"]
+        
+        result = name + ": " + value + unit
+        print(result)
+
+    # return smth
+
+
+def consume(food, quantity):
+    nutrients = measure(food, quantity)
+
+
+def viewStats():
+    pass
+
+
 # if vitamin in limitNutrient:
 #     raise NameError
+
+food = 'photos/quakerbarcode.png'
+
+# checkItem(food)
+# measure(food, 1)
