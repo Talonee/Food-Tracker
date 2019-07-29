@@ -1,19 +1,16 @@
+# Bar code reader
+from pyzbar.pyzbar import decode
+from PIL import Image
+
+# API interpreter
+import urllib.request
+import json
+
+# API Keys file
+from api_keys import key
+
+
 class Tracker:
-
-    # Bar code reader
-    from pyzbar.pyzbar import decode
-    from PIL import Image
-
-    # API interpreter
-    import urllib.request
-    import json
-    import pprint
-
-    # API Keys file
-    from api_keys import key
-
-
-    
     def __init__(self):
         self.limitNutrient = {
             "Biotin": ("mcg", 300),
@@ -93,49 +90,52 @@ class Tracker:
         }
 
     def checkItem(self, food, show=True):
-        # barInfo = self.decode(Image.open(food))
-        # barCode = str(barInfo[0].data)[2:-1]
+        barInfo = decode(Image.open(food))
+        barCode = str(barInfo[0].data)[2:-1]
 
-        # uri = "https://api.barcodelookup.com/v2/products?"
-        # query = "barcode=" + barCode + "&formatted=y&key=" + self.key["barcode"]
-        # urlBar = uri + query
+        uri = "https://api.barcodelookup.com/v2/products?"
+        query = "barcode=" + barCode + "&formatted=y&key=" + key["barcode"]
+        urlBar = uri + query
 
-        # with self.urllib.request.urlopen(urlBar) as url:
-        #     data = self.json.loads(url.read().decode())
+        with urllib.request.urlopen(urlBar) as url:
+            data = json.loads(url.read().decode())
 
-        # barcode = data["products"][0]["barcode_number"]
-        # name = data["products"][0]["product_name"]
-        
-        # if show:
-        #     print ("Barcode Number: " + barcode + "\n")
-        #     print ("Product Name: " + name + "\n")
+        barcode = data["products"][0]["barcode_number"]
+        name = data["products"][0]["product_name"]
 
-        name = "Quaker Instant Oatmeal, Apples & Cinnamon, Breakfast Cereal, 10 Packets Per Box (Pack of 4)"
+        if show:
+            print("Barcode Number: " + barcode + "\n")
+            print("Product Name: " + name + "\n")
+
+        # name = "7UP, 7.5 fl oz cans, 6 pack"
         name = name.replace(" ", "")
-
         return name
-
 
     def measure(self, food, quantity=1, show=True):
         uri = "https://api.nal.usda.gov/ndb/search/?"
-        query = "format=json&q=" + self.checkItem(food, show=False) + "&max=25&api_key=" + self.key["product"]
+        query = "format=json&max=25&q=" + self.checkItem(food, show=False) + "&api_key=" + key["product"]
         urlFood = uri + query
 
-        with self.urllib.request.urlopen(urlFood) as url:
-            data = self.json.loads(url.read().decode())
+        with urllib.request.urlopen(urlFood) as url:
+            data = json.loads(url.read().decode())
 
+        # print(data)
         product = ""
         result = data["list"]["item"]
+
+        print("==========================")
+        print(data)
+        print("==========================")
 
         for i in result:
             if i["ds"] == "SR" or i["ds"] == "BL":
                 product = i["ndbno"]
                 break
 
-        urlNutri = "https://api.nal.usda.gov/ndb/V2/reports?ndbno=" + product + "&type=b&format=json&api_key=TehI0dSnyvPsNIBs8qWtWro29oghehy3LTkXDSIc"
+        urlNutri = "https://api.nal.usda.gov/ndb/V2/reports?ndbno=" + product + "&type=b&format=json&api_key=" + key["product"]
 
-        with self.urllib.request.urlopen(urlNutri) as url:
-            data = self.json.loads(url.read().decode())
+        with urllib.request.urlopen(urlNutri) as url:
+            data = json.loads(url.read().decode())
 
         filter = data["foods"][0]["food"]["nutrients"]
         eqv = str(filter[0]["measures"][0]["eqv"] * quantity)
@@ -144,7 +144,7 @@ class Tracker:
 
         if show:
             print("Showing results for", str(quantity),
-                "serving(s) (" + eqv + eunit + ")")
+                  "serving(s) (" + eqv + eunit + ")")
             print("--------------------------")
 
         for i in filter:
@@ -162,7 +162,7 @@ class Tracker:
             print()
 
         return nutrition
-
+        # return "Hi"
 
     def consume(self, food, quantity=1):
         nutrition = self.measure(food, show=False)
@@ -173,16 +173,17 @@ class Tracker:
                     self.intakeNutrient[i][0] += nutrition[i][1] * quantity
                 elif nutrition[i][0] == "mg":
                     self.intakeNutrient[i][1] += nutrition[i][1] * quantity
-                elif nutrition[i][0] == "mcg":
+                elif nutrition[i][0] == "mcg" or nutrition[i][0] == "µg":
                     self.intakeNutrient[i][2] += nutrition[i][1] * quantity
-
 
     def viewStats(self):
         print("Current Intake:")
         print("--------------------------")
 
         for i in self.intakeNutrient:
-            self.intakeNutrient[i] = [round(num, 3) for num in self.intakeNutrient[i]]
+            self.intakeNutrient[i] = [
+                round(num, 3) for num in self.intakeNutrient[i]
+            ]
 
         for i in self.limitNutrient:
             total = 0
@@ -192,11 +193,12 @@ class Tracker:
                 total = self.intakeNutrient[i][0] + self.intakeNutrient[i][
                     1] / 1000 + self.intakeNutrient[i][2] / 1000000
             elif unit == "mg":
-                total = self.intakeNutrient[i][0] * 1000 + self.intakeNutrient[i][
-                    1] + self.intakeNutrient[i][2] / 1000
+                total = self.intakeNutrient[i][0] * 1000 + self.intakeNutrient[
+                    i][1] + self.intakeNutrient[i][2] / 1000
             elif unit == "mg":
-                total = self.intakeNutrient[i][0] * 1000000 + self.intakeNutrient[i][
-                    1] / 1000 + self.intakeNutrient[i][2]
+                total = self.intakeNutrient[i][
+                    0] * 1000000 + self.intakeNutrient[i][
+                        1] / 1000 + self.intakeNutrient[i][2]
 
             total = round(total, 3)
 
@@ -205,24 +207,25 @@ class Tracker:
 
                 if self.limitNutrient[i][-1] == "less":  # consume less
                     print(i + ": (" + str(total) + " / " +
-                        str(self.limitNutrient[i][1]) + unit + ")")
+                          str(self.limitNutrient[i][1]) + unit + ")")
 
-                    if diff <= self.limitNutrient[i][1] * .2 or diff < 0:  # difference < 20%
+                    if diff <= self.limitNutrient[i][
+                            1] * .2 or diff < 0:  # difference < 20%
                         print("   Caution: " + str(abs(diff)) + unit,
-                            "away from upper limit.")
+                              "away from upper limit.")
                     elif diff > self.limitNutrient[i][1] * .2:
                         print("   Safe: " + str(diff) + unit,
-                            "away from upper limit.")
+                              "away from upper limit.")
                     elif diff == 0:
                         print("   S T O P : " + str(diff) + unit,
-                            "away from upper limit.")
+                              "away from upper limit.")
                 else:
                     print(i + ": (" + str(total) + " / " +
-                        str(self.limitNutrient[i][1]) + unit + ")")
+                          str(self.limitNutrient[i][1]) + unit + ")")
 
                     if diff >= 0:
                         print("   Safe: " + str(diff) + unit,
-                            "away from lower limit.")
+                              "away from lower limit.")
                     elif diff < 0:
                         print("   Caution: " + str(abs(diff)) + unit,
-                            "above the lower limit.")
+                              "above the lower limit.")
