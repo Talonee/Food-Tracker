@@ -13,6 +13,8 @@ import re
 
 
 class Tracker:
+
+    # initialize nutrients intake and limit
     def __init__(self):
         self.limitNutrient = {
             "Biotin": ("mcg", 300),
@@ -91,6 +93,7 @@ class Tracker:
             "Fatty acids, total trans": [0, 0, 0]
         }
 
+    # check for product's barcode number and name
     def checkItem(self, food, show=True):
         barInfo = decode(Image.open(food))
         barCode = str(barInfo[0].data)[2:-1]
@@ -113,6 +116,7 @@ class Tracker:
         name = re.sub("\s+", "+", name)
         return name
 
+    # measure product's nutrition values
     def measure(self, food, quantity=1, show=True):
         uri = "https://api.nal.usda.gov/ndb/search/?"
         query = "format=json&max=25&sort=n&q=" + self.checkItem(
@@ -171,6 +175,7 @@ class Tracker:
 
         return nutrition
 
+    # consume product and track current nutrition values
     def consume(self, food, quantity=1, show=True):
         if self.measure(food, show=False) == "Error.":
             if show:
@@ -193,6 +198,7 @@ class Tracker:
                 elif nutrition[i][0] == "mcg" or nutrition[i][0] == "µg":
                     self.intakeNutrient[i][2] += nutrition[i][1] * quantity
 
+    # view current nutrition intakes
     def viewStats(self):
         if self.measure("", show=False) != "Error." or self.consume(
                 "", show=False) != "Error.":
