@@ -1,10 +1,9 @@
 # Food-Tracker
 Track food intake using bar codes
 
-_Disclaimer: The program runs but doesn't work properly 100% of the time due to difficulty with the USDA's API. Conversion between barcode and product isn't always accurate, so success rate is more like 20%..._
 
 ## Project Description
-This project will track down food item using bar code, find its nutrition values, and evaluate the user's daily nutrition intake. 
+This project will track down food item using the product's bar code, find its nutrition values, and evaluate the user's daily nutrition intake. 
 
 
 ## Technical Description
