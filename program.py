@@ -1,4 +1,4 @@
-from fxn import *
+from fxn import Tracker
 me = Tracker()
 
 food = 'photos/oatmeal2.jpg'
