@@ -18,6 +18,6 @@ This project will track down food item using the product's bar code, find its nu
 
 ## File Description
 
-* `program.py` - Create and run the Tracker class
-* `fxn.py` - Manage the Tracker class
+* `program.py` - Imitate user usage of the program.
+* `fxn.py` - Manage data analysis and data conversion.
 * `photos` - Folder containing barcode pictures.
