@@ -2,7 +2,7 @@
 Food Tracker tracks down a food item's nutritional values using the product's bar code, it then has the option to allow the user to evaluate their daily hypothetical and actual nutrition intake. 
 
 
-## The Process
+## Process Approach
 
 1. Scan and decode barcode images using the library pyzbar.
 2. Look for product's information using the barcode API, provided by [Barcode Lookup](https://www.barcodelookup.com/).
@@ -14,7 +14,7 @@ Food Tracker tracks down a food item's nutritional values using the product's ba
 6. View and track nutrition intake.
 
 
-## Map of the program's process:
+## Process results
 
 ![Process Tree](photos/progressTree-100.jpg)
 
