@@ -105,13 +105,14 @@ class Tracker:
         with urllib.request.urlopen(urlBar) as url:
             data = json.loads(url.read().decode())
 
-        barcode = data["products"][0]["barcode_number"]
+        barcode = data["products"][0]["barcode_number"]     
         name = data["products"][0]["product_name"]
 
         if show:
             print("Barcode Number: " + barcode + "\n")
             print("Product Name: " + name + "\n")
 
+        name = re.sub(".", "", name)
         name = re.sub(",", "%2C", name)
         name = re.sub("\s+", "+", name)
         return name
@@ -128,7 +129,7 @@ class Tracker:
 
         try:
             result = data["list"]["item"]
-        finally:
+        except:
             if show:
                 print("Error. Unable to find product. Cannot measure.")
                 print()
@@ -137,10 +138,10 @@ class Tracker:
         # print(json.dumps(data, indent = 4, sort_keys=True))
         # print("==========================")
 
-        # for i in result:
-        #     if i["ds"] == "SR" or i["ds"] == "BL":
-        #         product = i["ndbno"]
-        #         break
+        for i in result:
+            if i["ds"] == "SR" or i["ds"] == "BL":
+                product = i["ndbno"]
+                break
         product = result[0]["ndbno"]
 
         urlNutri = "https://api.nal.usda.gov/ndb/V2/reports?ndbno=" + product + "&type=b&format=json&api_key=" + key[
