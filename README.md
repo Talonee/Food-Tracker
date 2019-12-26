@@ -1,8 +1,4 @@
 # Food-Tracker
-Track food intake using bar codes
-
-
-## Project Description
 This project will track down food item using the product's bar code, find its nutrition values, and evaluate the user's daily nutrition intake. 
 
 
@@ -18,6 +14,5 @@ This project will track down food item using the product's bar code, find its nu
 
 ## File Description
 
-* `program.py` - Create and run the Tracker class
-* `fxn.py` - Manage the Tracker class
-* `photos` - Folder containing barcode pictures.
+* `program.py` - Imitate user usage of the program.
+* `fxn.py` - Manage data analysis and data conversion.
